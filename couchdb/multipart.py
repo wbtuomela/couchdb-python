@@ -150,7 +150,9 @@ class MultipartWriter(object):
             else:
                 content = content.encode('utf-8')
                 mimetype = mimetype + ';charset=utf-8'
-        elif 'charset' not in params:
+        # exclude images from being treated as a string
+        # XXX: is there a better way to do this??
+        elif 'charset' not in params and 'image/' not in ctype:
             try:
                 content.decode('utf-8')
             finally:

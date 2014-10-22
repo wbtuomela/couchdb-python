@@ -22,9 +22,10 @@ from couchdb.multipart import write_multipart
 
 BULK_SIZE = 1000
 
-def dump_docs(envelope, docs):
-    for doc in docs:
+def dump_docs(envelope, _ids, db):
+    for _id in _ids:
 
+        doc = db.get(_id, attachments=True)
         print >> sys.stderr, 'Dumping document %r' % doc.id
         attachments = doc.pop('_attachments', {})
         jsondoc = json.encode(doc)
@@ -61,8 +62,8 @@ def dump_db(dburl, username=None, password=None, boundary=None,
     envelope = write_multipart(output, boundary=boundary)
     start, num = 0, db.info()['doc_count']
     while start < num:
-        opts = {'limit': bulk_size, 'skip': start, 'include_docs': True}
-        dump_docs(envelope, [row.doc for row in db.view('_all_docs', **opts)])
+        opts = {'limit': bulk_size, 'skip': start}
+        dump_docs(envelope, [row.id for row in db.view('_all_docs', **opts)], db)
         start += bulk_size
 
     envelope.close()
